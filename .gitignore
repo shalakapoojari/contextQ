@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Vector DB / AI artifacts
+chroma_db/
+
+# macOS
+.DS_Store

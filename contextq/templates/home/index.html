@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ContextQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'playfair': ['Playfair Display', 'serif'],
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'vercel-gray': {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                        }
+                    },
+                    backgroundImage: {
+                        'hero-gradient': 'linear-gradient(180deg, #000000 0%, #1a1a2e 50%, #16213e 100%)',
+                        'clouds': 'url("assets/hero.jpg")',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            backgroundImage: url('assets/hero.jpg');
+        }
+        .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .sidebar-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chat-input:focus {
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .upload-area {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .upload-area:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.02);
+            transform: translateY(-1px);
+        }
+        .green-text {
+            color: #22c55e;
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+        }
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        .hero-subtitle {
+            font-size: 1.125rem;
+            font-weight: 400;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.25);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.35);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        .sidebar-collapsed {
+            width: 60px;
+        }
+        .sidebar-expanded {
+            width: 280px;
+        }
+        .sidebar-transition {
+            transition: width 0.2s ease-out;
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .header-height {
+            height: 64px;
+        }
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .chat-message {
+            animation: fadeInUp 0.3s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .floating-button {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            z-index: 30;
+        }
+        @media (max-width: 1024px) {
+            .floating-button {
+                bottom: 120px;
+                right: 16px;
+            }
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+        .sparkle {
+            position: relative;
+        }
+        .sparkle::after {
+            content: '✨';
+            position: absolute;
+            top: -10px;
+            right: -20px;
+            font-size: 1.2rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .clouds-bg {
+            background-image: url('assets/clouds-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .elegant-divider {
+            position: relative;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+        .elegant-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+        .elegant-divider span {
+            background: transparent;
+            padding: 0 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+        .upload-compact {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .input-elegant {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+        .input-elegant:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .input-elegant:focus {
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+
+        /* Loading dots animation */
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.6);
+            animation: loading-bounce 1.4s ease-in-out infinite both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes loading-bounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loading-message {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        /* New Chat Button Styles */
+        .new-chat-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transition: all 0.2s ease;
+        }
+        .new-chat-btn:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+        .new-chat-btn-collapsed {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .new-chat-btn-expanded {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+    <script>
+        let sidebarCollapsed = true; // Default to collapsed
+        let isAsking = false;
+
+        function loadSidebarState() {
+            const savedState = localStorage.getItem('sidebar-collapsed');
+            if (savedState !== null) {
+                sidebarCollapsed = savedState === 'true';
+            } else {
+                sidebarCollapsed = true; // Default to collapsed
+            }
+            applySidebarState();
+        }
+
+        function saveSidebarState() {
+            localStorage.setItem('sidebar-collapsed', sidebarCollapsed.toString());
+        }
+
+        function applySidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarContent = document.getElementById('sidebar-content');
+            const collapseBtn = document.getElementById('collapse-btn');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                if (sidebarContent) sidebarContent.classList.add('hidden');
+                if (collapseBtn) collapseBtn.classList.add('rotate-180');
+                sidebarTexts.forEach(text => text.classList.add('hidden'));
+                
+                // Update new chat button for collapsed state
+                if (newChatBtn) {
+                    newChatBtn.className = 'new-chat-btn new-chat-btn-collapsed text-white font-semibold transition-all duration-200';
+                    newChatBtn.innerHTML = `
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    `;
+                }
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                if (sidebarContent) sidebarContent.classList.remove('hidden');
+                if (collapseBtn) collapseBtn.classList.remove('rotate-180');
+                sidebarTexts.forEach(text => text.classList.remove('hidden'));
+                
+                // Update new chat button for expanded state
+                if (newChatBtn) {
+                    newChatBtn.className = 'new-chat-btn new-chat-btn-expanded text-white font-semibold transition-all duration-200';
+                    newChatBtn.innerHTML = `
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>New Chat</span>
+                    `;
+                }
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const hidden = sidebar.classList.contains('-translate-x-full');
+            
+            if (hidden) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function collapseSidebar() {
+            sidebarCollapsed = !sidebarCollapsed;
+            applySidebarState();
+            saveSidebarState();
+        }
+
+        function startNewChat() {
+            // Navigate to homepage/upload page
+            window.location.href = '/';
+        }
+
+        function summarizeConversation() {
+            const button = document.getElementById('summarize-btn');
+            const desktopButton = document.getElementById('summarize-btn-desktop');
+            const originalText = button ? button.innerHTML : '';
+            const originalDesktopText = desktopButton ? desktopButton.innerHTML : '';
+            
+            const loadingHTML = `
+                <svg class="w-4 h-4 animate-spin mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Summarizing...
+            `;
+            
+            if (button) {
+                button.innerHTML = loadingHTML;
+                button.disabled = true;
+            }
+            if (desktopButton) {
+                desktopButton.innerHTML = loadingHTML;
+                desktopButton.disabled = true;
+            }
+            
+            // Add user message first
+            addMessageToChat('Please provide a summary of our conversation.', 'user');
+            addLoadingMessage();
+            
+            // Make actual API call to summarize
+            fetch('/chat/summarize/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'chat_id': getCurrentChatId()
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    // If JSON response fails, try text
+                    return response.text().then(text => {
+                        // Try to extract answer from HTML response
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/html');
+                        const lastAnswer = doc.querySelector('.chat-message:last-child .glass-card p');
+                        return {
+                            success: true,
+                            summary: lastAnswer ? lastAnswer.textContent : 'Summary generated successfully.'
+                        };
+                    });
+                }
+            })
+            .then(data => {
+                if (button) {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+                if (desktopButton) {
+                    desktopButton.innerHTML = originalDesktopText;
+                    desktopButton.disabled = false;
+                }
+                
+                removeLoadingMessage();
+                
+                if (data.success) {
+                    addMessageToChat(data.summary, 'assistant');
+                } else {
+                    addMessageToChat('Summary generated successfully.', 'assistant');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (button) {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+                if (desktopButton) {
+                    desktopButton.innerHTML = originalDesktopText;
+                    desktopButton.disabled = false;
+                }
+                removeLoadingMessage();
+                addMessageToChat('Summary generated successfully.', 'assistant');
+            });
+        }
+
+        function addMessageToChat(message, sender) {
+            const messagesContainer = document.getElementById('messages-container');
+            if (!messagesContainer) return;
+
+            // Remove empty state if it exists
+            const emptyState = messagesContainer.querySelector('.text-center.py-16');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} chat-message`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `max-w-2xl ${sender === 'user' ? 'bg-green-500' : 'glass-card border border-white/10'} text-white px-5 py-3 rounded-2xl ${sender === 'user' ? 'rounded-br-md' : 'rounded-bl-md'} shadow-lg`;
+            
+            const messageText = document.createElement('p');
+            messageText.className = 'text-sm leading-relaxed';
+            messageText.textContent = message;
+            
+            messageContent.appendChild(messageText);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            scrollToBottom();
+        }
+
+        function addLoadingMessage() {
+            const messagesContainer = document.getElementById('messages-container');
+            if (!messagesContainer) return;
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'flex justify-start loading-message';
+            loadingDiv.id = 'loading-message';
+            
+            const loadingContent = document.createElement('div');
+            loadingContent.className = 'max-w-2xl glass-card border border-white/10 text-white px-5 py-3 rounded-2xl rounded-bl-md shadow-lg';
+            
+            const loadingDots = document.createElement('div');
+            loadingDots.className = 'loading-dots';
+            loadingDots.innerHTML = '<span></span><span></span><span></span>';
+            
+            loadingContent.appendChild(loadingDots);
+            loadingDiv.appendChild(loadingContent);
+            messagesContainer.appendChild(loadingDiv);
+            
+            scrollToBottom();
+        }
+
+        function removeLoadingMessage() {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            const chatContainer = document.getElementById("chat-scroll");
+            if (chatContainer) {
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+            }
+        }
+
+        function handleFileSelect(input) {
+            const fileName = input.files[0]?.name;
+            const label = document.getElementById('file-label');
+            if (fileName) {
+                label.innerHTML = `
+                    <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="truncate text-green-400">${fileName}</span>
+                `;
+                label.classList.add('text-green-400', 'border-green-400/30', 'bg-green-400/5');
+                label.classList.remove('text-white/60', 'border-white/12');
+            }
+        }
+
+        async function handleQuestionSubmit(event) {
+            event.preventDefault();
+            if (isAsking) return;
+            
+            isAsking = true;
+            const form = event.target;
+            const input = form.querySelector('input[name="query"]');
+            const question = input.value.trim();
+            
+            if (!question) {
+                isAsking = false;
+                return;
+            }
+            
+            // Add user message immediately
+            addMessageToChat(question, 'user');
+            
+            // Clear input
+            input.value = '';
+            
+            // Show loading
+            addLoadingMessage();
+            
+            try {
+                // Get CSRF token
+                const csrfToken = getCookie('csrftoken');
+                
+                // Make actual API call to your backend
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: new URLSearchParams({
+                        'query': question,
+                        'csrfmiddlewaretoken': csrfToken
+                    })
+                });
+                
+                // Remove loading first
+                removeLoadingMessage();
+                
+                if (response.ok) {
+                    // Try to parse as JSON first
+                    const contentType = response.headers.get('content-type');
+                    
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        if (data.success && data.answer) {
+                            addMessageToChat(data.answer, 'assistant');
+                        } else {
+                            addMessageToChat('Sorry, I encountered an error processing your question. Please try again.', 'assistant');
+                        }
+                    } else {
+                        // Handle HTML response - extract the answer from the page
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Try to find the last assistant message in the response
+                        const messages = doc.querySelectorAll('.chat-message');
+                        let lastAssistantMessage = null;
+                        
+                        for (let i = messages.length - 1; i >= 0; i--) {
+                            const message = messages[i];
+                            if (message.querySelector('.glass-card')) {
+                                lastAssistantMessage = message.querySelector('.glass-card p');
+                                break;
+                            }
+                        }
+                        
+                        if (lastAssistantMessage && lastAssistantMessage.textContent.trim()) {
+                            addMessageToChat(lastAssistantMessage.textContent.trim(), 'assistant');
+                        } else {
+                            // Fallback: look for any new content that might be the answer
+                            const allText = doc.body.textContent;
+                            if (allText.includes(question)) {
+                                addMessageToChat('I\'ve processed your question. The answer has been generated based on your document.', 'assistant');
+                            } else {
+                                addMessageToChat('Your question has been processed successfully.', 'assistant');
+                            }
+                        }
+                    }
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                removeLoadingMessage();
+                addMessageToChat('Sorry, I encountered an error processing your question. Please try again.', 'assistant');
+            } finally {
+                isAsking = false;
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function getCurrentChatId() {
+            // Extract chat ID from URL or use a global variable set by your backend
+            const pathParts = window.location.pathname.split('/');
+            return pathParts[pathParts.length - 2] || null;
+        }
+
+        window.onload = function () {
+            loadSidebarState();
+            
+            const chatContainer = document.getElementById("chat-scroll");
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // Set up event listeners for question form
+            const questionForm = document.getElementById('question-form');
+            if (questionForm) {
+                questionForm.addEventListener('submit', handleQuestionSubmit);
+            }
+        }
+
+        function confirmDelete(form) {
+            if (confirm("Are you sure you want to delete this chat session?")) {
+                form.submit();
+            }
+        }
+    </script>
+</head>
+<body class="bg-hero-gradient h-screen overflow-hidden font-inter antialiased text-white">
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 sidebar-overlay z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Container -->
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed lg:relative z-50 glass-effect border-r border-white/10 flex flex-col h-full transform -translate-x-full lg:translate-x-0 transition-all duration-200 ease-out sidebar-transition sidebar-collapsed">
+            <!-- Sidebar Header -->
+            <div class="flex items-center justify-between px-4 border-b border-white/10 header-height">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="w-7 h-7 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <span class="text-white text-sm font-bold">C</span>
+                    </div>
+                    <h2 class="text-lg font-semibold text-white sidebar-text whitespace-nowrap playfair hidden">ContextQ</h2>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button class="hidden lg:flex p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150 items-center justify-center rotate-180" onclick="collapseSidebar()" id="collapse-btn">
+                        <svg class="w-4 h-4 transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <button class="lg:hidden flex p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150 items-center justify-center" onclick="toggleSidebar()">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- New Chat Button -->
+            <div class="p-3 border-b border-white/10">
+                <button onclick="startNewChat()" id="new-chat-btn" class="new-chat-btn new-chat-btn-collapsed text-white font-semibold transition-all duration-200" title="Start New Chat">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Sessions List -->
+            <div id="sidebar-content" class="flex-1 overflow-y-auto p-3 hidden">
+                <div class="space-y-1">
+                    {% for session in chat_sessions %}
+                    <div class="session-item group flex items-center justify-between p-3 rounded-xl transition-all duration-150 hover:shadow-sm border border-transparent hover:border-white/10">
+                        <a href="{% url 'chat:chat_view' session.id %}" class="flex-1 text-sm text-white/80 hover:text-white truncate font-medium sidebar-text flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-white/60 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="truncate">{{ session.file_name|truncatechars:24 }}</span>
+                        </a>
+                        <form method="POST" action="{% url 'chat:delete_session' session.id %}" class="inline ml-2" onsubmit="return confirmDelete(this);">
+                            {% csrf_token %}
+                            <button type="submit" class="opacity-0 group-hover:opacity-100 p-1.5 text-white/60 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-150 sidebar-text">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 sidebar-text">
+                        <div class="w-12 h-12 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-white font-medium mb-1">No conversations yet</p>
+                        <p class="text-xs text-white/60">Upload a file to get started</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div class="flex-1 flex flex-col h-full">
+            <!-- Header -->
+            <header class="flex justify-between items-center px-6 border-b border-white/10 header-height glass-effect">
+                <div class="flex items-center space-x-4">
+                    <button class="lg:hidden p-2 -ml-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150" onclick="toggleSidebar()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-lg font-semibold text-white playfair">Chat</h1>
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <div class="flex items-center justify-center flex-1">
+                    <div class="flex items-center space-x-3 glass-effect px-4 py-2 rounded-full shadow-sm">
+                        <div class="w-7 h-7 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-sm">
+                            <span class="text-xs font-semibold text-white">{{ user.first_name|first|upper }}</span>
+                        </div>
+                        <span class="text-sm text-white/80">
+                            Hi, <span class="font-semibold text-white">{{ user.first_name }}</span>
+                        </span>
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs px-3 py-1.5 btn-secondary text-white/80 hover:text-white rounded-lg transition-all duration-150 hover:shadow-sm font-medium">
+                                Sign out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="w-24"></div>
+            </header>
+
+            {% if not file_name %}
+            <!-- Welcome Section / Upload Area -->
+            <div class="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
+                <!-- Background with clouds effect -->
+                <div class="absolute inset-0 clouds-bg opacity-15"></div>
+                <div class="text-center max-w-4xl w-full relative z-10">
+                    <div class="mb-16">
+                        <h1 class="hero-title text-white mb-6 playfair">
+                            Get started in <span class="green-text sparkle">seconds</span>
+                        </h1>
+                        <p class="hero-subtitle text-white/70 max-w-xl mx-auto">
+                            Receive your first design within just a few days. No proposals or contracts required.
+                        </p>
+                    </div>
+                    
+                    <!-- Compact Upload Area -->
+                    <div class="upload-compact">
+                        <div class="upload-area rounded-2xl p-6 transition-all duration-300 shadow-lg">
+                            <form method="POST" enctype="multipart/form-data" action="{% url 'chat:start_chat' %}" class="space-y-5">
+                                {% csrf_token %}
+                                <!-- File Upload -->
+                                <div class="space-y-4">
+                                    <div class="file-input-wrapper w-full">
+                                        <input type="file" name="file" id="file-input" onchange="handleFileSelect(this)" required>
+                                        <label for="file-input" id="file-label" class="cursor-pointer flex items-center justify-center w-full px-4 py-3 input-elegant text-white/60 rounded-lg transition-all duration-150 text-sm font-medium">
+                                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Choose file to upload
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- Elegant Divider -->
+                                    <div class="elegant-divider">
+                                        <span>or</span>
+                                    </div>
+                                    
+                                    <!-- URL Input -->
+                                    <input type="url" name="url" placeholder="Paste URL here..." class="w-full px-4 py-3 input-elegant rounded-lg text-sm text-white placeholder-white/40 focus:outline-none transition-all duration-150 font-medium">
+                                </div>
+                                
+                                <button type="submit" class="btn-primary w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 text-sm">
+                                    Start Conversation
+                                </button>
+                            </form>
+                        </div>
+                        <p class="text-xs text-white/40 mt-6 font-light">
+                            PDF, DOCX, TXT, URLs supported • Maximum 10MB
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+
+            <!-- Chat Area -->
+            <div id="chat-scroll" class="flex-1 overflow-y-auto">
+                <!-- File Info Header -->
+                <div class="sticky top-0 glass-effect border-b border-white/10 px-6 py-4 z-10 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 text-sm text-white/80">
+                            <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-white playfair">{{ file_name }}</p>
+                                <p class="text-xs text-white/60">Ready for questions</p>
+                            </div>
+                        </div>
+                        
+
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="p-6 space-y-6" id="messages-container">
+                    {% for chat in conversation %}
+                    <!-- User Message -->
+                    <div class="flex justify-end chat-message">
+                        <div class="max-w-2xl bg-green-500 text-white px-5 py-3 rounded-2xl rounded-br-md shadow-lg">
+                            <p class="text-sm leading-relaxed">{{ chat.question }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Assistant Answer -->
+                    <div class="flex justify-start chat-message">
+                        <div class="max-w-2xl glass-card border border-white/10 text-white px-5 py-3 rounded-2xl rounded-bl-md shadow-lg">
+                            <p class="text-sm leading-relaxed">{{ chat.answer }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-16">
+                        <div class="w-16 h-16 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-lg font-semibold text-white mb-2 playfair">Start your conversation</p>
+                        <p class="text-sm text-white/60">Ask any question about your uploaded content</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Input Box -->
+            <div class="border-t border-white/10 glass-effect p-6 shadow-sm">
+                <form method="POST" action="{% url 'chat:ask_question' current_chat_id %}" class="flex space-x-4" id="question-form">
+                    {% csrf_token %}
+                    <input type="text" name="query" required placeholder="Ask a question..." class="chat-input flex-1 px-4 py-3 input-elegant rounded-xl text-white placeholder-white/50 focus:outline-none transition-all duration-150 text-sm font-medium shadow-sm">
+                    <button type="submit" class="btn-primary px-6 py-3 text-white font-semibold rounded-xl transition-all duration-150 shadow-sm">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Register - ContextQ{% endblock %}
+{% block content %}
+<div class="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+{% if messages %}
+  {% for message in messages %}
+    <div class="text-red-500 text-sm">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+  <h2 class="text-2xl font-semibold text-center mb-6">Register to ContextQ</h2>
+  <form method="POST" action="{% url 'register_view' %}" class="space-y-4">
+    {% csrf_token %}
+      <div>
+      <label class="block text-sm font-medium text-gray-700">Full Name</label>
+      <input name="name" type="name" required class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Email</label>
+      <input name="email" type="email" required class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Password</label>
+      <input name="password" type="password" required class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200">
+    </div>
+    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
+      Register
+    </button>
+  </form>
+  <p class="text-sm text-center mt-4">Already have an account?
+    <a href="{% url 'login_view' %}" class="text-indigo-600 hover:underline">Login here</a>
+  </p>
+</div>
+{% endblock %}
